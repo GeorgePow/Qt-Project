@@ -16,7 +16,7 @@ class Shashki(QWidget):
         # self.current, self.new_coords = None, None # координаты хода
         while True:
             self.board = Board()
-            if board.current_player_color() == WHITE:
+            if self.board.current_player_color() == WHITE:
                 self.header = self.header + ' Ход белых:'
             else:
                 self.header = self.header + ' Ход красных:'
@@ -122,6 +122,14 @@ class Board:
 
     def current_player_color(self):
         return self.color
+
+    def cell(self, row, col):
+        piece = self.field[row][col]
+        if piece is None:
+            return Qt.transparent
+        color = piece.get_color()
+        c = Qt.white if color == WHITE else Qt.red
+        return c
 
 
 class Pawn:
