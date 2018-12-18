@@ -8,74 +8,28 @@ WHITE = 0
 RED = 1
 
 
-class Board(QWidget):
+class Shashki(QWidget):
 
     def __init__(self):
         super().__init__()
-        self.initUI()
-        self.current, self.new_coords = None, None # координаты хода
-        self.color = WHITE
+        self.header = 'Приветствуем!'
+        # self.current, self.new_coords = None, None # координаты хода
+        while True:
+            self.board = Board()
+            if board.current_player_color() == WHITE:
+                self.header = self.header + ' Ход белых:'
+            else:
+                self.header = self.header + ' Ход красных:'
 
-        # Создаем координаты красных шашек
-        self.red_pawns = []
-        first_y = 0
-        for x in range(1, 9):
-            for y in range(1 + first_y, 4, 2):
-                self.red_pawns.append((x, y))
-            first_y = (first_y + 1) % 2
-        
-        # Создаем координаты белых шашек
-        self.white_pawns = []
-        first_y = 1
-        for x in range(1, 9):
-            for y in range(6 + first_y, 9, 2):
-                self.white_pawns.append((x, y))
-            first_y = (first_y + 1) % 2
-
-        # Шашки текущего игрока
-        self.actual_pawns = self.white_pawns
+            self.initUI()
 
     def initUI(self):
-        self.setGeometry(300, 200, 500, 610)
+        self.setGeometry(300, 100, 500, 610)
         self.setWindowTitle('Шашки')
 
         self.label = QLabel(self)
         self.label.setText("Введите координаты, чтобы сделать ход")
         self.label.move(50, 470)
-
-        # Читаем col_from
-        self.col_from_label = QLabel(self)
-        self.col_from_label.setText("Из какой колонки делаем ход?")
-        self.col_from_label.move(50, 490)
-        self.col_from = QLineEdit(self)
-        self.col_from.move(250, 490)
-        
-        # Читаем row_from
-        self.row_from_label = QLabel(self)
-        self.row_from_label.setText("Из какого ряда делаем ход?")
-        self.row_from_label.move(50, 510)
-        self.row_from = QLineEdit(self)
-        self.row_from.move(250, 510)
-        
-        # Читаем col_to
-        self.col_to_label = QLabel(self)
-        self.col_to_label.setText("В какую колонку делаем ход?")
-        self.col_to_label.move(50, 530)
-        self.col_to = QLineEdit(self)
-        self.col_to.move(250, 530)
-        
-        # Читаем row_to
-        self.row_to_label = QLabel(self)
-        self.row_to_label.setText("В какой ряд делаем ход?")
-        self.row_to_label.move(50, 550)
-        self.row_to = QLineEdit(self)
-        self.row_to.move(250, 550)
-        
-        # Создаём кнопку, чтобы сделать ход
-        self.btn = QPushButton('Сходить', self)
-        self.btn.resize(self.btn.sizeHint())
-        self.btn.move(50, 570)
-        self.btn.clicked.connect(self.run)
         
         self.show()
 
@@ -146,12 +100,48 @@ class Board(QWidget):
             else:
                 color = Qt.red
             qp.setBrush(color)
-            qp.drawEllipse(50 * self.new_coords[0] + 2, 50 * self.new_coords[1] + 2, 46, 46)
+            qp.drawEllipse(50 * self.new_coords[0] + 2,
+                           50 * self.new_coords[1] + 2, 46, 46)
 
             self.current, self.new_coords = None, None
             self.color = opponent(self.color)
-            
 
+
+class Board:
+    def __init__(self):
+        self.color = WHITE
+        self.field = []
+        for row in range(8):
+            self.field.append([None] * 8)
+        self.field[0] = [[Pawn(WHITE), None] * 4]
+        self.field[1] = [[None, Pawn(WHITE)] * 4]
+        self.field[2] = [[Pawn(WHITE), None] * 4]
+        self.field[5] = [[[None, Pawn(RED)] * 4]]
+        self.field[6] = [[Pawn(RED), None] * 4]
+        self.field[7] = [[[None, Pawn(RED)] * 4]]
+
+    def current_player_color(self):
+        return self.color
+
+
+class Pawn:
+    def __init__(self, color):
+        self.color = color
+
+    def get_color(self):
+        return self.color
+
+    def can_move(self, board, col_from, row_from, col_to, row_to):
+        if abs(col_from - col_to) == 1:
+            return True
+        
+        if abs(col_from - col_to) != abs(row_from - row_to) \
+           or abs(col_from - col_to) > 2:
+            return False
+
+        return False
+
+    
 def correct_coords(row, col):
     '''Функция проверяет, что координаты (row, col) лежат
     внутри доски'''
@@ -169,7 +159,8 @@ def can_move(col_from, row_from, col_to, row_to):
     if (col_from, row_from) not in self.actual_pawns or \
        (col_to, row_to) in (self.white_pawns + self.red_pawns):
         return False
-    if abs(col_from - col_to) != abs(row_from - row_to) or abs(col_from - col_to) > 2:
+    if abs(col_from - col_to) != abs(row_from - row_to) \
+       or abs(col_from - col_to) > 2:
         return False
     if abs(col_from - col_to) == 1:
         return True
@@ -178,5 +169,5 @@ def can_move(col_from, row_from, col_to, row_to):
 if __name__ == '__main__':
 
     app = QApplication(sys.argv)
-    ex = Board()
+    ex = Shashki()
     sys.exit(app.exec_())
